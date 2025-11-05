@@ -63,6 +63,8 @@ postgresql://USER:PASSWORD@HOST:PORT/DB
    npm run prisma:seed
    ```
 
+Seluruh perintah migrasi dan seeding di atas dieksekusi melalui `scripts/run-prisma.js` yang akan memaksa penggunaan `DIRECT_URL`. Pastikan variabel tersebut mengarah ke koneksi langsung database.
+
 > **Catatan:** `prisma/schema.prisma` sudah mengatur `datasource db` dengan `DATABASE_URL` untuk koneksi pooling aplikasi dan `DIRECT_URL` untuk keperluan migrasi agar kompatibel dengan arsitektur read/write.
 
 ## Endpoint

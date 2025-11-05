@@ -2,10 +2,10 @@
 const { PrismaClient } = require('@prisma/client');
 const { hashPassword } = require('../src/utils/password');
 
-const directUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
+const directUrl = process.env.DIRECT_URL;
 
 if (!directUrl) {
-  throw new Error('DIRECT_URL atau DATABASE_URL wajib disediakan untuk menjalankan seeder.');
+  throw new Error('DIRECT_URL wajib disediakan untuk menjalankan seeder.');
 }
 
 const prisma = new PrismaClient({

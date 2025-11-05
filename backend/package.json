@@ -8,9 +8,9 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate deploy",
-    "prisma:migrate-dev": "prisma migrate dev",
-    "prisma:seed": "prisma db seed"
+    "prisma:migrate": "node scripts/run-prisma.js migrate deploy",
+    "prisma:migrate-dev": "node scripts/run-prisma.js migrate dev",
+    "prisma:seed": "node scripts/run-prisma.js db seed"
   },
   "keywords": [
     "monolith",
