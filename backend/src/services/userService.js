@@ -19,6 +19,12 @@ function ensurePassword(password) {
   return password;
 }
 
+function normalizeRoles(roles) {
+  return Array.isArray(roles) && roles.length > 0
+    ? [...new Set(roles.map((role) => String(role).trim().toLowerCase()).filter(Boolean))]
+    : ['member'];
+}
+
 async function registerUser({ email, password, fullName, roles = ['member'] }) {
   const normalizedEmail = ensureEmail(email);
   const sanitizedPassword = ensurePassword(password);
@@ -28,9 +34,7 @@ async function registerUser({ email, password, fullName, roles = ['member'] }) {
     throw error;
   }
 
-  const normalizedRoles = Array.isArray(roles) && roles.length > 0
-    ? [...new Set(roles.map((role) => String(role).trim()).filter(Boolean))]
-    : ['member'];
+  const normalizedRoles = normalizeRoles(roles);
 
   const existing = await userRepository.findByEmail(normalizedEmail);
   if (existing) {
@@ -66,7 +70,65 @@ async function authenticateUser({ email, password }) {
   return safeUser;
 }
 
+async function listUsers() {
+  const users = await userRepository.findAll();
+  return users.map((user) => {
+    const { passwordHash: _, ...safeUser } = user;
+    return { ...safeUser, roles: user.roles || [] };
+  });
+}
+
+async function updateUserRoles({ userId, roles }) {
+  if (!userId || typeof userId !== 'string') {
+    const error = new Error('userId wajib diisi');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const normalizedRoles = normalizeRoles(roles);
+  const updated = await userRepository.update(userId, { roles: normalizedRoles });
+  const { passwordHash: _, ...safeUser } = updated;
+  return safeUser;
+}
+
+async function resetPassword({ email, newPassword }) {
+  const normalizedEmail = ensureEmail(email);
+  const sanitizedPassword = ensurePassword(newPassword);
+
+  const existing = await userRepository.findByEmail(normalizedEmail);
+  if (!existing) {
+    const error = new Error('Pengguna tidak ditemukan');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const passwordHash = hashPassword(sanitizedPassword);
+  const updated = await userRepository.update(existing.id, { passwordHash });
+  const { passwordHash: _, ...safeUser } = updated;
+  return safeUser;
+}
+
+async function listRoles() {
+  const users = await userRepository.findAll();
+  const roleSet = new Set();
+  users.forEach((user) => {
+    (user.roles || []).forEach((role) => {
+      if (role) {
+        roleSet.add(role);
+      }
+    });
+  });
+  if (roleSet.size === 0) {
+    ['admin', 'manager', 'finance', 'member'].forEach((role) => roleSet.add(role));
+  }
+  return Array.from(roleSet);
+}
+
 module.exports = {
   registerUser,
   authenticateUser,
+  listUsers,
+  updateUserRoles,
+  resetPassword,
+  listRoles,
 };

@@ -13,7 +13,13 @@ async function login(payload) {
   return { user, token };
 }
 
+async function resetPassword(payload) {
+  const user = await userService.resetPassword(payload);
+  return { user };
+}
+
 module.exports = {
   register,
   login,
+  resetPassword,
 };

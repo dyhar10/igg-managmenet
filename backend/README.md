@@ -70,6 +70,30 @@ Body:
 }
 ```
 
+### POST `/api/auth/reset-password`
+Body:
+```json
+{
+  "email": "user@example.com",
+  "newPassword": "passwordBaru"
+}
+```
+
+### GET `/api/users`
+Mengambil daftar pengguna terdaftar tanpa hash password.
+
+### PATCH `/api/users/roles`
+Body:
+```json
+{
+  "userId": "<uuid>",
+  "roles": ["admin", "manager"]
+}
+```
+
+### GET `/api/roles`
+Mengambil daftar role unik yang terdaftar di sistem.
+
 ### GET `/api/health`
 Respon status server.
 
