@@ -19,7 +19,7 @@ function ensurePassword(password) {
   return password;
 }
 
-function registerUser({ email, password, fullName, roles = ['member'] }) {
+async function registerUser({ email, password, fullName, roles = ['member'] }) {
   const normalizedEmail = ensureEmail(email);
   const sanitizedPassword = ensurePassword(password);
   if (!fullName || typeof fullName !== 'string') {
@@ -28,7 +28,11 @@ function registerUser({ email, password, fullName, roles = ['member'] }) {
     throw error;
   }
 
-  const existing = userRepository.findByEmail(normalizedEmail);
+  const normalizedRoles = Array.isArray(roles) && roles.length > 0
+    ? [...new Set(roles.map((role) => String(role).trim()).filter(Boolean))]
+    : ['member'];
+
+  const existing = await userRepository.findByEmail(normalizedEmail);
   if (existing) {
     const error = new Error('Email sudah terdaftar');
     error.statusCode = 409;
@@ -36,25 +40,22 @@ function registerUser({ email, password, fullName, roles = ['member'] }) {
   }
 
   const passwordHash = hashPassword(sanitizedPassword);
-  const now = new Date().toISOString();
-  const user = userRepository.create({
+  const user = await userRepository.create({
     email: normalizedEmail,
     passwordHash,
     fullName: fullName.trim(),
-    roles,
-    createdAt: now,
-    updatedAt: now,
+    roles: normalizedRoles,
   });
 
   const { passwordHash: _, ...safeUser } = user;
   return safeUser;
 }
 
-function authenticateUser({ email, password }) {
+async function authenticateUser({ email, password }) {
   const normalizedEmail = ensureEmail(email);
   const sanitizedPassword = ensurePassword(password);
 
-  const existing = userRepository.findByEmail(normalizedEmail);
+  const existing = await userRepository.findByEmail(normalizedEmail);
   if (!existing || !verifyPassword(sanitizedPassword, existing.passwordHash)) {
     const error = new Error('Email atau password tidak valid');
     error.statusCode = 401;

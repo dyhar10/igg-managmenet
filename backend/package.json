@@ -6,7 +6,11 @@
   "type": "commonjs",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "node --watch src/index.js"
+    "dev": "node --watch src/index.js",
+    "prisma": "prisma",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "db:seed": "prisma db seed"
   },
   "keywords": [
     "monolith",
@@ -14,5 +18,14 @@
     "administration"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^5.13.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.13.0"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  }
 }
