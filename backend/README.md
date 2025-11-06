@@ -1,28 +1,33 @@
 # Backend
 
-Backend monolitik ringan untuk aplikasi administrasi perumahan. Server dibangun dengan Node.js murni dan Prisma ORM untuk menyederhanakan akses basis data PostgreSQL.
+Backend monolitik ringan untuk aplikasi administrasi perumahan. Server dibangun menggunakan Express.js dan Prisma ORM untuk memudahkan pengelolaan basis data PostgreSQL.
 
 ## Fitur
 - Endpoint registrasi dan login dengan hashing password PBKDF2.
 - Token autentikasi berbasis HMAC (format JWT kompatibel).
-- Integrasi Prisma ORM dengan koneksi pool (DATABASE_URL) dan direct connection (DIRECT_URL) untuk kebutuhan migrasi.
+- Integrasi Prisma ORM dengan koneksi pool (`DATABASE_URL`) dan direct connection (`DIRECT_URL`) untuk kebutuhan migrasi.
 - Skema awal basis data (User, Role, UserRole) beserta seeder default super admin.
 - Endpoint health check `/api/health`.
 
 ## Struktur Proyek
 ```
 src/
-  config/          # Konfigurasi aplikasi
-  controllers/     # Controller HTTP
-  routes/          # Registrasi rute
-  services/        # Logika bisnis
-  repositories/    # Akses data
-  utils/           # Utilitas umum
+  app.js          # Inisialisasi aplikasi Express
+  config/         # Konfigurasi aplikasi
+  controllers/    # Controller HTTP
+  middlewares/    # Penanganan error & 404
+  routes/         # Registrasi rute
+  services/       # Logika bisnis
+  repositories/   # Akses data
+  utils/          # Utilitas umum (hashing/token)
 ```
 
 ## Menjalankan Server
 ```bash
-node src/index.js
+npm install
+npm run dev # pengembangan dengan nodemon
+# atau
+npm start   # menjalankan tanpa watch mode
 ```
 
 Variabel lingkungan:

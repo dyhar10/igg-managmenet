@@ -16,6 +16,7 @@ function getEnv(key, fallback, options = {}) {
 }
 
 const config = {
+  nodeEnv: getEnv('NODE_ENV', 'development'),
   port: Number.parseInt(getEnv('PORT', '4000'), 10),
   jwtSecret: getEnv('JWT_SECRET', REQUIRED_ENV.JWT_SECRET),
   tokenExpirationSeconds: Number.parseInt(
