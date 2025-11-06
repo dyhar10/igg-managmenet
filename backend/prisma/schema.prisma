@@ -17,3 +17,42 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum PaymentMethod {
+  CASH
+  TRANSFER
+  OTHER
+}
+
+model House {
+  id        String             @id @default(uuid())
+  code      String             @unique
+  ownerName String?
+  address   String?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  cashTransactions CashTransaction[]
+}
+
+model CashTransaction {
+  id              String           @id @default(uuid())
+  houseId         String
+  house           House            @relation(fields: [houseId], references: [id], onDelete: Cascade)
+  transactionType TransactionType
+  paymentMethod   PaymentMethod
+  category        String
+  amount          Decimal          @db.Decimal(12, 2)
+  description     String?
+  transactionDate DateTime
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([houseId])
+  @@index([transactionDate])
+  @@index([transactionType])
+}

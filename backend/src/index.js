@@ -2,12 +2,14 @@ const http = require('http');
 const Router = require('./utils/router');
 const { sendJson } = require('./utils/http');
 const config = require('./config/environment');
-const registerAuthRoutes = require('./routes/authRoutes');
 const prisma = require('./config/database');
+const registerAuthRoutes = require('./routes/authRoutes');
+const registerCashRoutes = require('./routes/cashRoutes');
 
 const router = new Router();
 
 registerAuthRoutes(router);
+registerCashRoutes(router);
 router.register('GET', '/api/health', async (_req, res) => {
   sendJson(res, 200, {
     status: 'ok',

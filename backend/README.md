@@ -7,6 +7,7 @@ Backend monolitik ringan untuk aplikasi administrasi perumahan. Server kini meng
 - Token autentikasi berbasis HMAC (format JWT kompatibel).
 - Manajemen pengguna menggunakan basis data melalui Prisma ORM (PostgreSQL).
 - Endpoint health check `/api/health`.
+- Modul kas perumahan untuk pencatatan pemasukan/pengeluaran dan ringkasan kas.
 
 ## Struktur Proyek
 ```
@@ -71,6 +72,39 @@ Body:
 
 ### GET `/api/health`
 Respon status server.
+
+### GET `/api/houses`
+Mengambil daftar rumah terdaftar beserta pemiliknya.
+
+### POST `/api/houses`
+Body:
+```json
+{
+  "code": "A-03",
+  "ownerName": "Nama Pemilik",
+  "address": "Blok A No. 3"
+}
+```
+
+### GET `/api/cash-transactions`
+Parameter opsional: `houseId`, `transactionType`, `startDate`, `endDate` (format ISO `YYYY-MM-DD`).
+
+### POST `/api/cash-transactions`
+Body:
+```json
+{
+  "houseId": "<uuid>",
+  "transactionType": "INCOME",
+  "paymentMethod": "CASH",
+  "category": "Iuran Bulanan",
+  "amount": 250000,
+  "transactionDate": "2024-05-01",
+  "description": "Catatan tambahan"
+}
+```
+
+### GET `/api/cash-dashboard`
+Ringkasan kas mingguan, bulanan, tahunan, dan keseluruhan. Opsional `houseId` untuk filter per rumah.
 
 ## Catatan
 - Prisma Client otomatis membuat pool koneksi berdasarkan `DATABASE_URL`. Pastikan URL mengarah ke pool (mis. PgBouncer) untuk aplikasi produksi.
