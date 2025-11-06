@@ -17,7 +17,22 @@ async function create(user) {
   });
 }
 
+async function findAll() {
+  return prisma.user.findMany({
+    orderBy: { createdAt: 'desc' },
+  });
+}
+
+async function update(id, data) {
+  return prisma.user.update({
+    where: { id },
+    data,
+  });
+}
+
 module.exports = {
   findByEmail,
   create,
+  findAll,
+  update,
 };
