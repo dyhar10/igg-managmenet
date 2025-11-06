@@ -1,11 +1,11 @@
 # Backend
 
-Backend monolitik ringan untuk aplikasi administrasi perumahan. Server dibuat tanpa ketergantungan eksternal sehingga dapat dijalankan di lingkungan dengan konektivitas terbatas.
+Backend monolitik ringan untuk aplikasi administrasi perumahan. Server kini menggunakan Prisma ORM untuk berinteraksi dengan basis data PostgreSQL, memanfaatkan connection pooling (`DATABASE_URL`) untuk aplikasi dan koneksi langsung (`DIRECT_URL`) khusus migrasi.
 
 ## Fitur
 - Endpoint registrasi dan login dengan hashing password PBKDF2.
 - Token autentikasi berbasis HMAC (format JWT kompatibel).
-- Penyimpanan pengguna sederhana berbasis berkas JSON agar mudah diganti ke basis data di masa depan.
+- Manajemen pengguna menggunakan basis data melalui Prisma ORM (PostgreSQL).
 - Endpoint health check `/api/health`.
 
 ## Struktur Proyek
@@ -19,15 +19,34 @@ src/
   utils/           # Utilitas umum
 ```
 
+## Konfigurasi Basis Data
+
+Siapkan variabel lingkungan berikut sebelum menjalankan aplikasi atau perintah Prisma:
+
+- `DATABASE_URL` (**wajib**): URL koneksi dengan connection pooling untuk aplikasi (misal PgBouncer/Neon pooler).
+- `DIRECT_URL` (**wajib untuk migrasi**): URL koneksi langsung ke basis data utama yang akan digunakan Prisma saat menjalankan migrasi.
+- `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`, `SEED_ADMIN_FULL_NAME` (opsional): kredensial akun admin bawaan untuk seeder.
+- `PORT` (default: `4000`)
+- `JWT_SECRET` (default: `change-me`, **ganti di produksi**)
+- `TOKEN_EXPIRATION_SECONDS` (default: `3600` detik)
+
+## Migrasi & Seeder
+
+Jalankan perintah berikut dari folder `backend/` setelah dependensi terpasang:
+
+```bash
+npm install
+npm run migrate:dev -- --name init    # migrasi schema saat pengembangan
+npm run migrate:deploy                # menerapkan migrasi di server produksi
+npm run db:seed                       # menanam data awal (akun admin default)
+```
+
+Prisma otomatis memakai `DATABASE_URL` untuk koneksi aplikasi dan `DIRECT_URL` saat melakukan migrasi.
+
 ## Menjalankan Server
 ```
 node src/index.js
 ```
-
-Variabel lingkungan opsional:
-- `PORT` (default: `4000`)
-- `JWT_SECRET` (default: `change-me`, **ganti di produksi**) 
-- `TOKEN_EXPIRATION_SECONDS` (default: `3600` detik)
 
 ## Endpoint
 ### POST `/api/auth/register`
@@ -54,5 +73,5 @@ Body:
 Respon status server.
 
 ## Catatan
-- Penyimpanan pengguna menggunakan `data/users.json`. Untuk penggunaan produksi, sebaiknya diganti dengan basis data yang andal.
+- Prisma Client otomatis membuat pool koneksi berdasarkan `DATABASE_URL`. Pastikan URL mengarah ke pool (mis. PgBouncer) untuk aplikasi produksi.
 - Token menggunakan algoritma HS256; simpan rahasia JWT dengan aman.

@@ -3,6 +3,7 @@ const Router = require('./utils/router');
 const { sendJson } = require('./utils/http');
 const config = require('./config/environment');
 const registerAuthRoutes = require('./routes/authRoutes');
+const prisma = require('./config/database');
 
 const router = new Router();
 
@@ -22,3 +23,23 @@ const server = http.createServer((req, res) => {
 server.listen(config.port, () => {
   console.log(`Backend server berjalan di port ${config.port}`);
 });
+
+let isShuttingDown = false;
+
+function gracefulShutdown(signal) {
+  if (isShuttingDown) {
+    return;
+  }
+  isShuttingDown = true;
+  console.log(`\nReceived ${signal}. Closing HTTP server and database connections...`);
+  server.close(async (closeError) => {
+    if (closeError) {
+      console.error('Error while closing HTTP server:', closeError);
+    }
+    await prisma.$disconnect();
+    process.exit(closeError ? 1 : 0);
+  });
+}
+
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);

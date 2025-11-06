@@ -1,14 +1,14 @@
 const { signToken } = require('../utils/token');
 const userService = require('./userService');
 
-function register(payload) {
-  const user = userService.registerUser(payload);
+async function register(payload) {
+  const user = await userService.registerUser(payload);
   const token = signToken({ sub: user.id, email: user.email, roles: user.roles });
   return { user, token };
 }
 
-function login(payload) {
-  const user = userService.authenticateUser(payload);
+async function login(payload) {
+  const user = await userService.authenticateUser(payload);
   const token = signToken({ sub: user.id, email: user.email, roles: user.roles });
   return { user, token };
 }
