@@ -18,9 +18,19 @@ function findByCode(code) {
   return prisma.house.findUnique({ where: { code } });
 }
 
+function updateHouse(id, data) {
+  return prisma.house.update({ where: { id }, data });
+}
+
+function deleteHouse(id) {
+  return prisma.house.delete({ where: { id } });
+}
+
 module.exports = {
   createHouse,
   listHouses,
   findById,
   findByCode,
+  updateHouse,
+  deleteHouse,
 };

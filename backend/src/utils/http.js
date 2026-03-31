@@ -11,6 +11,26 @@ function sendJson(res, statusCode, payload, headers = {}) {
   res.end(body);
 }
 
+function sendHtml(res, statusCode, html, headers = {}) {
+  res.writeHead(statusCode, {
+    'Content-Type': 'text/html; charset=utf-8',
+    'Content-Length': Buffer.byteLength(html),
+    'Access-Control-Allow-Origin': '*',
+    ...headers,
+  });
+  res.end(html);
+}
+
+function sendText(res, statusCode, text, contentType = 'text/plain', headers = {}) {
+  res.writeHead(statusCode, {
+    'Content-Type': `${contentType}; charset=utf-8`,
+    'Content-Length': Buffer.byteLength(text),
+    'Access-Control-Allow-Origin': '*',
+    ...headers,
+  });
+  res.end(text);
+}
+
 function sendNoContent(res) {
   res.writeHead(204, {
     'Access-Control-Allow-Origin': '*',
@@ -43,6 +63,8 @@ async function parseJsonBody(req) {
 
 module.exports = {
   sendJson,
+  sendHtml,
+  sendText,
   sendNoContent,
   parseJsonBody,
 };

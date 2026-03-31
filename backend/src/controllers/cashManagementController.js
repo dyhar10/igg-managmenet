@@ -12,6 +12,23 @@ async function listHouses(_req, res) {
   sendJson(res, 200, { message: 'Daftar rumah berhasil diambil', data: result });
 }
 
+async function updateHouse(req, res) {
+  const url = new URL(req.url, 'http://localhost');
+  const parts = url.pathname.split('/');
+  const id = parts[parts.length - 1];
+  const body = await parseJsonBody(req);
+  const result = await cashManagementService.updateHouse(id, body);
+  sendJson(res, 200, { message: 'Rumah berhasil diperbarui', data: result });
+}
+
+async function deleteHouse(req, res) {
+  const url = new URL(req.url, 'http://localhost');
+  const parts = url.pathname.split('/');
+  const id = parts[parts.length - 1];
+  await cashManagementService.deleteHouse(id);
+  sendJson(res, 200, { message: 'Rumah berhasil dihapus' });
+}
+
 async function createTransaction(req, res) {
   const body = await parseJsonBody(req);
   const result = await cashManagementService.createTransaction(body);
@@ -42,6 +59,8 @@ async function getDashboardSummary(req, res) {
 module.exports = {
   createHouse,
   listHouses,
+  updateHouse,
+  deleteHouse,
   createTransaction,
   listTransactions,
   getDashboardSummary,

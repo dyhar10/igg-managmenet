@@ -99,3 +99,34 @@ export function fetchHouses(token) {
 export function createHouse({ data, token }) {
   return request('/api/houses', { method: 'POST', body: data, token });
 }
+
+export function updateHouse({ id, data, token }) {
+  return request(`/api/houses/${id}`, { method: 'PUT', body: data, token });
+}
+
+export function deleteHouse({ id, token }) {
+  return request(`/api/houses/${id}`, { method: 'DELETE', token });
+}
+
+export function generateFees({ data, token }) {
+  return request('/api/fees/generate', { method: 'POST', body: data, token });
+}
+
+export function fetchFees({ filters = {}, token } = {}) {
+  const url = new URL('/api/fees', API_BASE_URL);
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') url.searchParams.set(key, value);
+  });
+  return handleFetch(url, { token });
+}
+
+export function updateFeeStatus({ id, data, token }) {
+  return request(`/api/fees/${id}`, { method: 'PATCH', body: data, token });
+}
+
+export function fetchHouseMap({ year, month, token }) {
+  const url = new URL('/api/fees/map', API_BASE_URL);
+  url.searchParams.set('year', year);
+  url.searchParams.set('month', month);
+  return handleFetch(url, { token });
+}

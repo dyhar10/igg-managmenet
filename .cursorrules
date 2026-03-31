@@ -1,0 +1,18 @@
+# IGG Management Project Rules
+
+## Architecture & Code Guidelines
+
+- **Backend Architecture**: Follow the **Controller-Service-Repository** pattern.
+  - **No Express**: Use the custom Router in `src/utils/router.js`.
+  - **Repositories**: Standard Prisma CRUD operations.
+  - **Services**: Business logic and validation. Throw errors with a `.statusCode`.
+  - **Controllers**: Handle HTTP mechanics (`parseJsonBody`, `sendJson`).
+- **Standard Responses**: All API responses must follow the `{ message, data }` envelope.
+- **Frontend Integration**:
+  - Centralized API requests in `src/api/client.js`.
+  - Maintain the existing design language: premium aesthetics, responsive layouts, and consistent sidebar navigation (`Layout.jsx`).
+- **Documentation**: Keep `backend/docs/API.md` and `backend/docs/openapi.yaml` updated for every endpoint change.
+- **Project Structure**: Do not deviate from the current folder organization.
+
+## Feature Workflow
+1. Prisma Migrate -> 2. Repository -> 3. Service -> 4. Controller -> 5. Route -> 6. API Docs -> 7. Frontend Client -> 8. UI implementation.

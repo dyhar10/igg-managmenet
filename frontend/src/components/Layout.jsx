@@ -3,9 +3,11 @@ import { useAuth } from '../context/AuthContext.jsx';
 
 const MENU_ITEMS = [
   { to: '/app/dashboard', label: 'Dashboard' },
-  { to: '/app/financial', label: 'Financial Management' },
-  { to: '/app/users', label: 'User Management' },
-  { to: '/app/roles', label: 'Role Management' },
+  { to: '/app/monthly-fee', label: 'Iuran Bulanan' },
+  { to: '/app/house-map', label: 'Peta Rumah' },
+  { to: '/app/financial', label: 'Keuangan' },
+  { to: '/app/users', label: 'Pengguna' },
+  { to: '/app/roles', label: 'Peran' },
 ];
 
 export default function Layout() {

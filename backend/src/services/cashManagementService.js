@@ -131,6 +131,30 @@ async function listHouses() {
   return houses.map(formatHouse);
 }
 
+async function updateHouse(id, { code, ownerName, address }) {
+  const existing = await houseRepository.findById(id);
+  if (!existing) throw createHttpError('Rumah tidak ditemukan', 404);
+
+  const updatedCode = code ? normalizeString(code)?.toUpperCase() : undefined;
+  if (updatedCode && updatedCode !== existing.code) {
+    const conflict = await houseRepository.findByCode(updatedCode);
+    if (conflict) throw createHttpError('Kode rumah sudah terdaftar', 409);
+  }
+
+  const house = await houseRepository.updateHouse(id, {
+    ...(updatedCode ? { code: updatedCode } : {}),
+    ownerName: ownerName !== undefined ? (normalizeString(ownerName) || null) : undefined,
+    address: address !== undefined ? (normalizeString(address) || null) : undefined,
+  });
+  return formatHouse(house);
+}
+
+async function deleteHouse(id) {
+  const existing = await houseRepository.findById(id);
+  if (!existing) throw createHttpError('Rumah tidak ditemukan', 404);
+  await houseRepository.deleteHouse(id);
+}
+
 async function createTransaction(payload) {
   const { houseId, transactionType, paymentMethod, category, amount, description, transactionDate } = payload;
 
@@ -257,6 +281,8 @@ async function getDashboardSummary({ houseId }) {
 module.exports = {
   createHouse,
   listHouses,
+  updateHouse,
+  deleteHouse,
   createTransaction,
   listTransactions,
   getDashboardSummary,

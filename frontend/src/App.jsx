@@ -8,6 +8,8 @@ import FinancialManagementPage from './pages/FinancialManagementPage.jsx';
 import UserManagementPage from './pages/UserManagementPage.jsx';
 import RoleManagementPage from './pages/RoleManagementPage.jsx';
 import PublicDashboardPage from './pages/PublicDashboardPage.jsx';
+import MonthlyFeePage from './pages/MonthlyFeePage.jsx';
+import HouseMapPage from './pages/HouseMapPage.jsx';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth();
@@ -36,6 +38,8 @@ export default function App() {
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="financial" element={<FinancialManagementPage />} />
+            <Route path="monthly-fee" element={<MonthlyFeePage />} />
+            <Route path="house-map" element={<HouseMapPage />} />
             <Route path="users" element={<UserManagementPage />} />
             <Route path="roles" element={<RoleManagementPage />} />
           </Route>

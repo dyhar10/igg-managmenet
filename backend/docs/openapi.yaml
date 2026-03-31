@@ -1,0 +1,878 @@
+openapi: 3.0.3
+info:
+  title: IGG Management API
+  description: API for IGG neighborhood administration and monthly fee management.
+  version: 1.0.0
+servers:
+  - url: http://localhost:4000
+    description: Local development server
+
+tags:
+  - name: Auth
+    description: User authentication and account management
+  - name: Users
+    description: User and role management
+  - name: Houses
+    description: Neighborhood housing data
+  - name: Monthly Fees
+    description: Monthly subscription and payment tracking
+  - name: Cash Management
+    description: Financial records and cash flow
+  - name: System
+    description: Server status and health check
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        fullName:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    House:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+        ownerName:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CashTransaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        houseId:
+          type: string
+          format: uuid
+        house:
+          $ref: "#/components/schemas/House"
+        transactionType:
+          type: string
+          enum: [INCOME, EXPENSE]
+        paymentMethod:
+          type: string
+          enum: [CASH, TRANSFER, OTHER]
+        category:
+          type: string
+        amount:
+          type: number
+        description:
+          type: string
+          nullable: true
+        transactionDate:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    MonthlyFee:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        houseId:
+          type: string
+          format: uuid
+        house:
+          $ref: "#/components/schemas/House"
+        year:
+          type: integer
+        month:
+          type: integer
+          minimum: 1
+          maximum: 12
+        amount:
+          type: number
+        status:
+          type: string
+          enum: [UNPAID, PAID, WAIVED]
+        paidAt:
+          type: string
+          format: date-time
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PeriodSummary:
+      type: object
+      properties:
+        income:
+          type: number
+        expense:
+          type: number
+        balance:
+          type: number
+
+  responses:
+    UnauthorizedError:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Email atau password tidak valid"
+
+    BadRequestError:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Input tidak valid"
+
+    NotFoundError:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Data tidak ditemukan"
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/health:
+    get:
+      summary: Health check
+      operationId: checkHealth
+      tags: [System]
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: string
+                    format: date-time
+        "500":
+          description: Internal Server Error
+
+  /api/auth/login:
+    post:
+      summary: User login
+      operationId: login
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: admin@igg.id
+                password:
+                  type: string
+                  format: password
+                  example: secret123
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Login berhasil"
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: "#/components/schemas/User"
+                      token:
+                        type: string
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api/auth/register:
+    post:
+      summary: Register new user
+      operationId: register
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, fullName]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: admin@igg.id
+                password:
+                  type: string
+                  format: password
+                  example: secret123
+                fullName:
+                  type: string
+                  example: Randy Hardianto
+                roles:
+                  type: array
+                  items:
+                    type: string
+                  example: ["admin"]
+      responses:
+        "201":
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Registrasi berhasil"
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: "#/components/schemas/User"
+                      token:
+                        type: string
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "409":
+          description: Conflict (email taken)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Email sudah terdaftar"
+
+  /api/houses:
+    get:
+      summary: List all houses
+      operationId: listHouses
+      tags: [Houses]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Daftar rumah berhasil diambil"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/House"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+    post:
+      summary: Create a house
+      operationId: createHouse
+      tags: [Houses]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  example: A-01
+                ownerName:
+                  type: string
+                  example: Budi Santoso
+                address:
+                  type: string
+                  example: Jl. Mawar No. 1
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Rumah berhasil ditambahkan"
+                  data:
+                    $ref: "#/components/schemas/House"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "409":
+          description: Code conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Kode rumah sudah terdaftar"
+
+  /api/houses/{id}:
+    put:
+      summary: Update a house
+      operationId: updateHouse
+      tags: [Houses]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                ownerName:
+                  type: string
+                address:
+                  type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Rumah berhasil diperbarui"
+                  data:
+                    $ref: "#/components/schemas/House"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "409":
+          description: Code conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Kode rumah sudah terdaftar"
+    delete:
+      summary: Delete a house
+      operationId: deleteHouse
+      tags: [Houses]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Rumah berhasil dihapus"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /api/fees/generate:
+    post:
+      summary: Generate monthly fees for houses
+      operationId: generateFees
+      tags: [Monthly Fees]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [year, month, amount]
+              properties:
+                year:
+                  type: integer
+                  example: 2026
+                month:
+                  type: integer
+                  example: 3
+                amount:
+                  type: number
+                  example: 250000
+                houseIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        "201":
+          description: Fees generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Iuran berhasil digenerate"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/MonthlyFee"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+
+  /api/fees:
+    get:
+      summary: List fees with filters
+      operationId: listFees
+      tags: [Monthly Fees]
+      parameters:
+        - in: query
+          name: year
+          schema:
+            type: integer
+        - in: query
+          name: month
+          schema:
+            type: integer
+        - in: query
+          name: houseId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [UNPAID, PAID, WAIVED]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Daftar iuran berhasil diambil"
+                  data:
+                    type: object
+                    properties:
+                      fees:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/MonthlyFee"
+                      summary:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                          PAID:
+                            type: integer
+                          UNPAID:
+                            type: integer
+                          WAIVED:
+                            type: integer
+                          totalCollected:
+                            type: number
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+
+  /api/fees/{id}:
+    patch:
+      summary: Update fee status
+      operationId: updateFeeStatus
+      tags: [Monthly Fees]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [UNPAID, PAID, WAIVED]
+                notes:
+                  type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Status iuran berhasil diperbarui"
+                  data:
+                    $ref: "#/components/schemas/MonthlyFee"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /api/cash-dashboard:
+    get:
+      summary: Cash dashboard summary
+      operationId: getCashDashboard
+      tags: [Cash Management]
+      parameters:
+        - in: query
+          name: houseId
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Ringkasan kas berhasil diambil"
+                  data:
+                    type: object
+                    properties:
+                      weekly:
+                        $ref: "#/components/schemas/PeriodSummary"
+                      monthly:
+                        $ref: "#/components/schemas/PeriodSummary"
+                      yearly:
+                        $ref: "#/components/schemas/PeriodSummary"
+                      overall:
+                        $ref: "#/components/schemas/PeriodSummary"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api/cash-transactions:
+    get:
+      summary: List cash transactions
+      operationId: listCashTransactions
+      tags: [Cash Management]
+      parameters:
+        - in: query
+          name: houseId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: transactionType
+          schema:
+            type: string
+            enum: [INCOME, EXPENSE]
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Daftar transaksi kas berhasil diambil"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CashTransaction"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+    post:
+      summary: Create a cash transaction
+      operationId: createCashTransaction
+      tags: [Cash Management]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                [
+                  houseId,
+                  transactionType,
+                  paymentMethod,
+                  category,
+                  amount,
+                  transactionDate,
+                ]
+              properties:
+                houseId:
+                  type: string
+                  format: uuid
+                transactionType:
+                  type: string
+                  enum: [INCOME, EXPENSE]
+                paymentMethod:
+                  type: string
+                  enum: [CASH, TRANSFER, OTHER]
+                category:
+                  type: string
+                amount:
+                  type: number
+                transactionDate:
+                  type: string
+                  format: date
+                description:
+                  type: string
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Transaksi kas berhasil dicatat"
+                  data:
+                    $ref: "#/components/schemas/CashTransaction"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+
+  /api/fees/map:
+    get:
+      summary: Get house map data
+      operationId: getHouseMap
+      tags: [Monthly Fees]
+      parameters:
+        - in: query
+          name: year
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: month
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Data peta rumah berhasil diambil"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        code:
+                          type: string
+                        ownerName:
+                          type: string
+                          nullable: true
+                        address:
+                          type: string
+                          nullable: true
+                        fee:
+                          type: object
+                          nullable: true
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                            amount:
+                              type: number
+                            status:
+                              type: string
+                              enum: [UNPAID, PAID, WAIVED]
+                            paidAt:
+                              type: string
+                              format: date-time
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+
+  /api/users:
+    get:
+      summary: List users
+      operationId: listUsers
+      tags: [Users]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api/roles:
+    get:
+      summary: List roles
+      operationId: listRoles
+      tags: [Users]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: string
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api/users/roles:
+    patch:
+      summary: Update user roles
+      operationId: updateUserRoles
+      tags: [Users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, roles]
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+                roles:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Roles pengguna diperbarui"
+                  data:
+                    $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
